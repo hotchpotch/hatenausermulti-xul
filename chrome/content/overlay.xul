@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<overlay id="Multi-user-hatenaOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script type="application/x-javascript"
+	  src="chrome://multiuserhatena/content/Multi-user-hatena.js" />
+  <menupopup id="menu_ToolsPopup">
+    <menuitem label='multi-user-hatena' oncommand='alert("hello. this is multi-user-hatena")'/>
+  </menupopup>
+</overlay>

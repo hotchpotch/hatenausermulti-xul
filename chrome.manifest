@@ -1,0 +1,3 @@
+content	multiuserhatena	chrome/content/
+overlay	chrome://browser/content/browser.xul	chrome://multiuserhatena/content/overlay.xul
+skin	multiuserhatena	classic/1.0	chrome/skin/
