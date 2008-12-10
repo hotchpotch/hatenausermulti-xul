@@ -26,9 +26,6 @@
 
 if (typeof MultiUserOnHatenaService != "function") {
     var MultiUserOnHatenaService = function () {
-            this.initialize.apply(this, arguments);
-            arguments.callee.instance = this;
-
         if (arguments.callee.instance) {
             // some complex process for reloading
             for (let prop in arguments.callee.prototype) {
@@ -49,6 +46,19 @@ MultiUserOnHatenaService.prototype = {
     ID : "status-bar-multi-user-hatena-uc",
 
     initialize : function () {
+        this.checkPanel();
+    },
+
+    checkPanel: function() {
+        var panel = document.getElementById('multi-user-hatena-panel');
+        if (panel) {
+            this.init();
+        } else {
+            var self = this;
+            setTimeout( function() { self.checkPanel() }, 300 );
+        }
+    },
+    init: function() {
         var self = this;
         self.manager    = Components.classes["@mozilla.org/login-manager;1"]
                                     .getService(Components.interfaces.nsILoginManager);
@@ -56,8 +66,8 @@ MultiUserOnHatenaService.prototype = {
                                     .getService(Components.interfaces.nsIIOService);
 
 
-        var statusbar = document.getElementById("status-bar");
-        self.panel    = document.createElementNS(MultiUserOnHatenaService.XULNS, "statusbarpanel");
+        self.panel    = document.getElementById('multi-user-hatena-panel');
+        while (self.panel.firstChild) self.panel.removeChild(self.panel.firstChild);
 
         self.img = document.createElementNS(MultiUserOnHatenaService.XULNS, "image");
         self.iconimg = <><![CDATA[
@@ -70,10 +80,6 @@ MultiUserOnHatenaService.prototype = {
             RK5CYII=
         ]]></>.replace(/\s+/g, "");
         self.img.setAttribute("src", self.iconimg);
-        self.panel.appendChild(self.img);
-
-        self.lbl = document.createElementNS(MultiUserOnHatenaService.XULNS, "label");
-        self.panel.appendChild(self.lbl);
 
         self.menu = document.createElementNS(MultiUserOnHatenaService.XULNS, "menupopup");
 
@@ -85,7 +91,6 @@ MultiUserOnHatenaService.prototype = {
         var t = document.getElementById(self.ID)
         if (t) t.parentNode.removeChild(t);
         self.panel.id = self.ID;
-        statusbar.appendChild(self.panel);
 
         var appcontent = document.getElementById("appcontent");
         if (appcontent) {
@@ -103,6 +108,7 @@ MultiUserOnHatenaService.prototype = {
             }, true);
         }
 
+        self.setStatus(' ');
         setTimeout(function () { self.checkLogin() }, 1000);
     },
 
@@ -197,11 +203,11 @@ MultiUserOnHatenaService.prototype = {
     } catch (e) { alert(e) } },
 
     setStatus : function (msg) {
-        this.lbl.setAttribute("value", msg);
+        this.panel.setAttribute("label", msg);
         this.panel.setAttribute("tooltiptext", msg);
+        this.panel.insertBefore(this.img, this.panel.firstChild);
     },
 };
 
 new MultiUserOnHatenaService();
-
 
