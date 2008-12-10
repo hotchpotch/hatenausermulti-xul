@@ -2,10 +2,4 @@
 <overlay id="Multi-user-hatenaOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/x-javascript"
       src="chrome://multiuserhatena/content/Multiuserhatena.js" />
-  <menupopup id="menu_ToolsPopup">
-    <menuitem label='multi-user-hatena' oncommand='Multiuserhatena()'/>
-  </menupopup>
-  <statusbar id="status-bar">
-      <statusbarpanel id="multiuser-hatena-panel" label="Hello2, Firefox extension"/>
-  </statusbar> 
 </overlay>
