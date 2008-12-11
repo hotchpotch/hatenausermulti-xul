@@ -136,6 +136,7 @@ MultiUserOnHatenaService.prototype = {
         var logins = this.manager.findLogins({}, "https://www.hatena.ne.jp", "", null);
 
         while (this.menu.firstChild) this.menu.removeChild(this.menu.firstChild);
+
         logins.forEach(function (l) {
             var self = this;
             var mi = document.createElementNS(MultiUserOnHatenaService.XULNS, "menuitem");
@@ -150,6 +151,18 @@ MultiUserOnHatenaService.prototype = {
             }, false);
             this.menu.appendChild(mi);
         }, this);
+
+        if ( logins.length ) {
+          var self = this;
+          this.menu.appendChild( document.createElementNS(MultiUserOnHatenaService.XULNS, "menuseparator") );
+          var mi = document.createElementNS(MultiUserOnHatenaService.XULNS, "menuitem");
+          mi.setAttribute('label', 'logout');
+          mi.addEventListener("command", function (e) {
+              self.menu.hidePopup();
+              self.switchUser();
+          }, false);
+          this.menu.appendChild(mi);
+        }
 
         //this.menu.showPopup(this.panel, -1, -1, "popup", "bottomleft", "topleft");
         this.menu.openPopup(this.panel, "after_start", 0, 0, false, true);
@@ -180,6 +193,11 @@ MultiUserOnHatenaService.prototype = {
         var req = new XMLHttpRequest;
         req.open("GET", "http://www.hatena.ne.jp/logout", true);
         req.onload = function (e) { try {
+            if (typeof logininfo == 'undefined') {
+                self.setStatus('[not logged in]');
+                return;
+            }
+
             var req = this;
 
 //          // debug
