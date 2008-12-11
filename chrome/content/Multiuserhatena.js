@@ -152,17 +152,17 @@ MultiUserOnHatenaService.prototype = {
             this.menu.appendChild(mi);
         }, this);
 
+        var self = this;
         if ( logins.length ) {
-          var self = this;
           this.menu.appendChild( document.createElementNS(MultiUserOnHatenaService.XULNS, "menuseparator") );
-          var mi = document.createElementNS(MultiUserOnHatenaService.XULNS, "menuitem");
-          mi.setAttribute('label', 'logout');
-          mi.addEventListener("command", function (e) {
-              self.menu.hidePopup();
-              self.switchUser();
-          }, false);
-          this.menu.appendChild(mi);
         }
+        var mi = document.createElementNS(MultiUserOnHatenaService.XULNS, "menuitem");
+        mi.setAttribute('label', 'logout');
+        mi.addEventListener("command", function (e) {
+            self.menu.hidePopup();
+            self.switchUser();
+        }, false);
+        this.menu.appendChild(mi);
 
         //this.menu.showPopup(this.panel, -1, -1, "popup", "bottomleft", "topleft");
         this.menu.openPopup(this.panel, "after_start", 0, 0, false, true);
