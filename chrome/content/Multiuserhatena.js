@@ -108,8 +108,19 @@ MultiUserOnHatenaService.prototype = {
             }, true);
         }
 
-        self.setStatus(' ');
+        self.setStatus('');
         setTimeout(function () { self.checkLogin() }, 1000);
+    },
+
+    getProfileImage : function (name) {
+         var pre = name.substr(0, 2);
+         return 'http://www.hatena.ne.jp/users/' + pre + '/' + name + '/profile_s.gif';
+    },
+
+    getProfileIcon : function (name) {
+        var icon = document.createElementNS(MultiUserOnHatenaService.XULNS, "image");
+        icon.setAttribute("src", this.getProfileImage(name));
+        return icon;
     },
 
     onPanelClick : function (e) {
@@ -126,9 +137,13 @@ MultiUserOnHatenaService.prototype = {
 
         while (this.menu.firstChild) this.menu.removeChild(this.menu.firstChild);
         logins.forEach(function (l) {
-            var mi = document.createElementNS(MultiUserOnHatenaService.XULNS, "menuitem");
-            mi.setAttribute("label", l.username);
             var self = this;
+            var mi = document.createElementNS(MultiUserOnHatenaService.XULNS, "menuitem");
+            var icon = self.getProfileIcon(l.username);
+            mi.appendChild(icon);
+            var label = document.createElementNS(MultiUserOnHatenaService.XULNS, "label");
+            label.setAttribute('value', l.username);
+            mi.appendChild(label);
             mi.addEventListener("command", function (e) {
                 self.menu.hidePopup();
                 self.switchUser(l);
