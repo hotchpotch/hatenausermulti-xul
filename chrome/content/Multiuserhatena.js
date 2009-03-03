@@ -49,6 +49,15 @@ MultiUserOnHatenaService.prototype = {
         this.checkPanel();
     },
 
+    PrefService : function () {
+         if (!this._pref) {
+             this._pref = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
+                 .QueryInterface(Ci.nsIPrefBranch)
+                 .QueryInterface(Ci.nsIPrefBranch2);
+         }
+         return this._pref;
+    },
+
     checkPanel: function() {
         var panel = document.getElementById('multi-user-hatena-panel');
         if (panel) {
@@ -138,6 +147,8 @@ MultiUserOnHatenaService.prototype = {
         while (this.menu.firstChild) this.menu.removeChild(this.menu.firstChild);
 
         logins.forEach(function (l) {
+            if (!l.username.length) return;
+
             var self = this;
             var mi = document.createElementNS(MultiUserOnHatenaService.XULNS, "menuitem");
             var icon = self.getProfileIcon(l.username);
@@ -171,13 +182,10 @@ MultiUserOnHatenaService.prototype = {
     checkLogin : function () {
         var self = this;
         var req = new XMLHttpRequest;
-        req.open("GET", "http://www.hatena.ne.jp/my", true);
+        req.open("GET", "http://b.hatena.ne.jp/my.name", true);
         req.onload = function (e) { try {
-            if (req.responseText.match(/<a href="\/my"><strong>([^<]+)<\/strong><\/a>/)) {
-                self.setStatus(RegExp.$1);
-            } else {
-                self.setStatus("[not logged in]");
-            }
+            let res = eval('(' + req.responseText + ')');
+            self.setStatus(res.name ? res.name : '[not logged in]');
         } catch (e) { alert(e) } };
         req.onerror = function (e) {
             self.setStatus(String(e));
