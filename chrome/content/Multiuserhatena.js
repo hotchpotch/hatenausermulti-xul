@@ -46,27 +46,45 @@ MultiUserOnHatenaService.prototype = {
     ID : "status-bar-multi-user-hatena-uc",
 
     initialize : function () {
-        this.checkPanel();
+        this.register();
+        this.init();
+        this.updateStatusLabel();
     },
 
-    PrefService : function () {
+    register : function() {
+        this.pref.addObserver('', this, false);
+    },
+
+    unregister : function() {
+        this.pref.removeObserver('', this);
+    },
+
+    observe: function(aSubject, aTopic, aData) {
+        if (aTopic != 'nsPref:changed') return;
+        if (aData == 'showStatusLabel') {
+            this.updateStatusLabel();
+        }
+    },
+
+    updateStatusLabel: function() {
+        let pref = this.pref;
+        if (pref.getBoolPref('showStatusLabel')) {
+            this.panel.setAttribute('label', this.panel.getAttribute('_last_label'));
+        } else {
+            this.panel.setAttribute('label', '');
+        }
+    },
+
+    get pref function () {
          if (!this._pref) {
              this._pref = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
+                 .getBranch('extensions.multiuserhatena.')
                  .QueryInterface(Ci.nsIPrefBranch)
                  .QueryInterface(Ci.nsIPrefBranch2);
          }
          return this._pref;
     },
 
-    checkPanel: function() {
-        var panel = document.getElementById('multi-user-hatena-panel');
-        if (panel) {
-            this.init();
-        } else {
-            var self = this;
-            setTimeout( function() { self.checkPanel() }, 300 );
-        }
-    },
     init: function() {
         var self = this;
         self.manager    = Components.classes["@mozilla.org/login-manager;1"]
@@ -104,9 +122,6 @@ MultiUserOnHatenaService.prototype = {
         var appcontent = document.getElementById("appcontent");
         if (appcontent) {
             // はてな上でのログイン/ログアウトを追跡してステータスに反映させる
-//          appcontent.addEventListener("DOMContentLoaded", function (e) {
-//              return self.onDOMContentLoad(e);
-//          }, true);
             window.addEventListener("pagehide", function (e) {
                 var loc = e.target.location.href;
                 switch (true) {
@@ -136,18 +151,12 @@ MultiUserOnHatenaService.prototype = {
         if (this.menu.state != "closed") return;
 
         var matched = [];
-//      var passwords = this.manager.enumerator;
-//      var pass;
-//      while (passwords.hasMoreElements()) {
-//          var pass = passwords.getNext().QueryInterface(Components.interfaces.nsIPassword);
-//          if (pass.host.match(/^https?:\/\/www\.hatena\.ne\.jp/)) matched.push(pass);
-//      }
         var logins = this.manager.findLogins({}, "https://www.hatena.ne.jp", "", null);
 
         while (this.menu.firstChild) this.menu.removeChild(this.menu.firstChild);
 
         logins.forEach(function (l) {
-            if (!l.username.length) return;
+            if (l.username.length < 3) return;
 
             var self = this;
             var mi = document.createElementNS(MultiUserOnHatenaService.XULNS, "menuitem");
@@ -184,8 +193,9 @@ MultiUserOnHatenaService.prototype = {
         var req = new XMLHttpRequest;
         req.open("GET", "http://b.hatena.ne.jp/my.name", true);
         req.onload = function (e) { try {
+            Application.console.log('load');
             let res = eval('(' + req.responseText + ')');
-            self.setStatus(res.name ? res.name : '[not logged in]');
+            self.setStatus(res.name ? res.name : '[not logged in]', !!res.name);
         } catch (e) { alert(e) } };
         req.onerror = function (e) {
             self.setStatus(String(e));
@@ -223,7 +233,7 @@ MultiUserOnHatenaService.prototype = {
 //              var newTab = gBrowser.addTab(uri);
 
                 if (req.responseText.match(/でログイン中です/)) {
-                    self.setStatus(logininfo.username);
+                    self.setStatus(logininfo.username, true);
                     content.location.reload();
                 } else {
                     self.setStatus("Failed");
@@ -239,16 +249,23 @@ MultiUserOnHatenaService.prototype = {
             ].join(""));
         } catch (e) { alert(e) } };
         req.send(null);
-
-        // this.currentUser = logininfo;
     } catch (e) { alert(e) } },
 
-    setStatus : function (msg) {
-        this.panel.setAttribute("label", msg);
+    setStatus : function (msg, iconed) {
+        // this.panel.setAttribute("label", msg);
+        this.panel.setAttribute("_last_label", msg); // XXX
+        this.updateStatusLabel();
         this.panel.setAttribute("tooltiptext", msg);
+        if (iconed) {
+            this.img.src = this.getProfileImage(msg);
+        } else {
+            this.img.setAttribute("src", this.iconimg);
+        }
         this.panel.insertBefore(this.img, this.panel.firstChild);
     },
 };
 
-new MultiUserOnHatenaService();
+window.addEventListener('load', function() {
+    new MultiUserOnHatenaService();
+}, false);
 
